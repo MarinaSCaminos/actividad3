@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+
+        <!-- ====== CONEXIÓN ====== -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+
+        <!-- Reemplazá <TU_DB>, <USER>, <PASS>. Ejemplo de DB del profe: ormPruebaXX -->
+        <property name="hibernate.connection.url">
+            jdbc:mysql://10.101.0.12:3306/ormPrueba21?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=America/Argentina/Buenos_Aires&amp;useUnicode=true&amp;characterEncoding=UTF-8
+        </property>
+        <property name="hibernate.connection.username">user21</property>
+        <property name="hibernate.connection.password">user21</property>
+
+        <!-- ====== HIBERNATE ====== -->
+        <!-- En Hibernate 6, MySQLDialect autodetecta versión. Podés usar MySQL8Dialect si querés forzar -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+
+        <!-- Para evitar que Hibernate intente crear/alterar tablas en el servidor del CIDETIC. -->
+        <property name="hibernate.hbm2ddl.auto">validate</property>
+
+        <!-- Consola más legible -->
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.format_sql">true</property>
+        <property name="hibernate.highlight_sql">true</property>
+        <property name="hibernate.jdbc.time_zone">America/Argentina/Buenos_Aires</property>
+
+        <!-- ====== ENTIDADES ANOTADAS (paquete: ar.edu.unlu.bd2.modelo) ====== -->
+        <mapping class="ar.edu.unlu.bd2.modelo.Cliente"/>
+        <mapping class="ar.edu.unlu.bd2.modelo.Producto"/>
+        <mapping class="ar.edu.unlu.bd2.modelo.Factura"/>
+        <mapping class="ar.edu.unlu.bd2.modelo.DetalleFactura"/>
+        <!-- DetalleFacturaId es @Embeddable y NO se mapea aparte -->
+    </session-factory>
+</hibernate-configuration>
+
