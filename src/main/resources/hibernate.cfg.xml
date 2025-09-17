@@ -7,17 +7,18 @@
 
         <!-- ====== CONEXIÓN ====== -->
         <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-
-        <!-- Reemplazá <TU_DB>, <USER>, <PASS>. Ejemplo de DB del profe: ormPruebaXX -->
         <property name="hibernate.connection.url">
             jdbc:mysql://10.101.0.12:3306/ormPrueba21?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=America/Argentina/Buenos_Aires&amp;useUnicode=true&amp;characterEncoding=UTF-8
         </property>
         <property name="hibernate.connection.username">user21</property>
         <property name="hibernate.connection.password">user21</property>
 
+        <!-- Tamaño del pool (reduce ruido; estamos usando el pool interno solo para el TP) -->
+        <property name="hibernate.connection.pool_size">5</property>
+
         <!-- ====== HIBERNATE ====== -->
-        <!-- En Hibernate 6, MySQLDialect autodetecta versión. Podés usar MySQL8Dialect si querés forzar -->
-        <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+        <!-- Evita el warning de versión con MySQLDialect al apuntar a MariaDB -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MariaDBDialect</property>
 
         <!-- Para evitar que Hibernate intente crear/alterar tablas en el servidor del CIDETIC. -->
         <property name="hibernate.hbm2ddl.auto">validate</property>
