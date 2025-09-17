@@ -12,23 +12,23 @@ import java.util.Objects;
 public class DetalleFacturaId implements Serializable {
 
     @Column(name = "id_factura", nullable = false)
-    private Long idFactura;
+    private Integer idFactura;
 
     @Column(name = "id_producto", nullable = false)
-    private Long idProducto;
+    private Integer idProducto;
 
     public DetalleFacturaId() { }
 
-    public DetalleFacturaId(Long idFactura, Long idProducto) {
+    public DetalleFacturaId(Integer idFactura, Integer idProducto) {
         this.idFactura = idFactura;
         this.idProducto = idProducto;
     }
 
-    public Long getIdFactura() { return idFactura; }
-    public void setIdFactura(Long idFactura) { this.idFactura = idFactura; }
+    public Integer getIdFactura() { return idFactura; }
+    public void setIdFactura(Integer idFactura) { this.idFactura = idFactura; }
 
-    public Long getIdProducto() { return idProducto; }
-    public void setIdProducto(Long idProducto) { this.idProducto = idProducto; }
+    public Integer getIdProducto() { return idProducto; }
+    public void setIdProducto(Integer idProducto) { this.idProducto = idProducto; }
 
     @Override
     public boolean equals(Object o) {

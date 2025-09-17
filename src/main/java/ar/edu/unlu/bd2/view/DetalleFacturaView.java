@@ -46,8 +46,8 @@ public class DetalleFacturaView {
 
     private void crear() {
         System.out.println("\n> Crear detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto: ");
         int cantidad = InputReader.nextInt("Cantidad (>0): ");
         DetalleFactura d = controller.crear(idFactura, idProducto, cantidad);
         System.out.println("✔ Detalle creado. Factura=" + idFactura + " Producto=" + idProducto +
@@ -57,8 +57,8 @@ public class DetalleFacturaView {
 
     private void obtener() {
         System.out.println("\n> Obtener detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto: ");
         Optional<DetalleFactura> od = controller.obtener(idFactura, idProducto);
         if (od.isEmpty()) {
             System.out.println("No existe detalle (factura=" + idFactura + ", producto=" + idProducto + ").");
@@ -69,15 +69,15 @@ public class DetalleFacturaView {
 
     private void listarPorFactura() {
         System.out.println("\n> Listar detalles por factura");
-        long idFactura = InputReader.nextLong("ID de factura: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
         List<DetalleFactura> dets = controller.listarPorFactura(idFactura);
         printTabla(dets);
     }
 
     private void actualizarCantidad() {
         System.out.println("\n> Actualizar cantidad");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto (actual): ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto (actual): ");
         int nuevaCantidad = InputReader.nextInt("Nueva cantidad (>0): ");
         DetalleFactura d = controller.actualizarCantidad(idFactura, idProducto, nuevaCantidad);
         System.out.println("✔ Cantidad actualizada.");
@@ -86,9 +86,9 @@ public class DetalleFacturaView {
 
     private void reemplazarProducto() {
         System.out.println("\n> Reemplazar producto");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProductoActual = InputReader.nextLong("ID de producto actual: ");
-        long idProductoNuevo = InputReader.nextLong("ID de producto nuevo: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProductoActual = InputReader.nextInt("ID de producto actual: ");
+        int idProductoNuevo = InputReader.nextInt("ID de producto nuevo: ");
         int cantidadNueva = InputReader.nextInt("Cantidad para el nuevo producto (>0): ");
         DetalleFactura d = controller.reemplazarProducto(idFactura, idProductoActual, idProductoNuevo, cantidadNueva);
         System.out.println("✔ Producto reemplazado.");
@@ -97,8 +97,8 @@ public class DetalleFacturaView {
 
     private void eliminar() {
         System.out.println("\n> Eliminar detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto: ");
         boolean ok = controller.eliminar(idFactura, idProducto);
         if (ok) System.out.println("✔ Detalle eliminado.");
         else System.out.println("No existe ese detalle.");
@@ -127,8 +127,8 @@ public class DetalleFacturaView {
     }
 
     private void printLineaTabla(DetalleFactura d) {
-        Long fid = d.getFactura() != null ? d.getFactura().getIdFactura() : null;
-        Long pid = d.getProducto() != null ? d.getProducto().getIdProducto() : null;
+        Integer fid = d.getFactura() != null ? d.getFactura().getIdFactura() : null;
+        Integer pid = d.getProducto() != null ? d.getProducto().getIdProducto() : null;
         System.out.printf("%-10d %-10d %-10d %-14s %-14s%n",
                 fid, pid, d.getCantidad(), fmtMoney(d.getPrecioUnitario()), fmtMoney(d.getSubtotal()));
     }

@@ -1,10 +1,12 @@
 package ar.edu.unlu.bd2.view;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 
 /**
  * Utilidad simple para leer datos desde consola con validaciones.
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 public final class InputReader {
 
     private static final BufferedReader IN = new BufferedReader(new InputStreamReader(System.in));
+    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private InputReader() {}
 
@@ -133,4 +136,36 @@ public final class InputReader {
         for (int i = 0; i < vals.length; i++) names[i] = vals[i].name();
         return names;
     }
+
+    // ===== Aliases de compatibilidad (para no tocar App ni Views) =====
+    public static String readString(String prompt) {
+        return nextLine(prompt);
+    }
+    public static int readInt(String prompt) {
+        return nextInt(prompt);
+    }
+    public static long readLong(String prompt) {
+        return nextLong(prompt);
+    }
+    public static BigDecimal readBigDecimal(String prompt) {
+        // si querés aceptar coma como separador, descomentá la línea de replace:
+        String s = nextLine(prompt);
+        // s = s.replace(",", ".");
+        while (true) {
+            try { return new BigDecimal(s.trim()); }
+            catch (NumberFormatException ex) {
+                System.out.println("Ingrese un número decimal válido (ej: 1234.56).");
+                s = nextLine(prompt);
+                // s = s.replace(",", ".");
+            }
+        }
+    }
+    public static LocalDate readDate(String prompt) {
+        while (true) {
+            String s = nextLine(prompt);
+            try { return LocalDate.parse(s.trim(), DF); }
+            catch (Exception ex) { System.out.println("Fecha inválida. Formato: yyyy-MM-dd"); }
+        }
+    }
+
 }

@@ -1,6 +1,7 @@
 package ar.edu.unlu.bd2.controller;
 
 import ar.edu.unlu.bd2.modelo.Cliente;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -46,31 +47,37 @@ public class ClienteController {
     public Optional<Cliente> obtenerPorId(Integer idCliente) {
         try (Session session = SESSION_FACTORY.openSession()) {
             Cliente c = session.get(Cliente.class, idCliente);
+            if (c != null) {
+                // Evita LazyInitializationException en la vista
+                Hibernate.initialize(c.getFacturas());
+            }
             return Optional.ofNullable(c);
         } catch (Exception e) {
             throw new RuntimeException("No se pudo obtener el cliente id=" + idCliente + ": " + e.getMessage(), e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     public List<Cliente> listarTodos() {
         try (Session session = SESSION_FACTORY.openSession()) {
-            return session.createQuery("from Cliente c order by c.idCliente").list();
+            return session.createQuery("from Cliente c order by c.idCliente", Cliente.class)
+                    .getResultList();
         } catch (Exception e) {
             throw new RuntimeException("No se pudo listar clientes: " + e.getMessage(), e);
         }
     }
+
 
     public Cliente actualizar(Cliente cliente) {
         Transaction tx = null;
         try (Session session = SESSION_FACTORY.openSession()) {
             tx = session.beginTransaction();
             // merge devuelve la instancia administrada; útil si 'cliente' vino detachado
-            Cliente managed = (Cliente) session.merge(cliente);
+            Cliente managed = session.merge(cliente);
             tx.commit();
             return managed;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
+            // Si TRG_BU_cliente bloquea pasar a 'inactivo', el mensaje se verá en la vista (try/catch)
             throw new RuntimeException("No se pudo actualizar el cliente id=" + cliente.getIdCliente() + ": " + e.getMessage(), e);
         }
     }
@@ -80,19 +87,18 @@ public class ClienteController {
         try (Session session = SESSION_FACTORY.openSession()) {
             tx = session.beginTransaction();
             Cliente c = session.get(Cliente.class, idCliente);
-            if (c == null) {
-                tx.rollback();
-                return false; // no existe
-            }
+            if (c == null) { tx.rollback(); return false; }
             session.remove(c);
             tx.commit();
             return true;
+        } catch (org.hibernate.exception.ConstraintViolationException ex) {
+            if (tx != null) tx.rollback();
+            // FK (facturas) impide el delete
+            return false;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            // Si hay FK (p.ej., facturas del cliente), la BD puede bloquear el delete
             throw new RuntimeException(
-                    "No se pudo eliminar el cliente id=" + idCliente +
-                            ". Posible restricción por facturas asociadas. Detalle: " + e.getMessage(), e);
+                    "No se pudo eliminar el cliente id=" + idCliente + ": " + e.getMessage(), e);
         }
     }
 

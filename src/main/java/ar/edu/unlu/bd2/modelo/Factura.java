@@ -15,7 +15,7 @@ public class Factura {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // BIGINT AUTO_INCREMENT en MySQL
     @Column(name = "id_factura", nullable = false)
-    private Long idFactura;
+    private Integer idFactura;
 
     // Muchas facturas pertenecen a un cliente
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -44,8 +44,8 @@ public class Factura {
 
     // =================== Getters / Setters ===================
 
-    public Long getIdFactura() { return idFactura; }
-    public void setIdFactura(Long idFactura) { this.idFactura = idFactura; }
+    public Integer getIdFactura() { return idFactura; }
+    public void setIdFactura(Integer idFactura) { this.idFactura = idFactura; }
 
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }

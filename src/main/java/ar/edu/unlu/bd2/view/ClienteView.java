@@ -1,6 +1,5 @@
 package ar.edu.unlu.bd2.view;
 
-
 import ar.edu.unlu.bd2.controller.ClienteController;
 import ar.edu.unlu.bd2.modelo.Cliente;
 
@@ -46,8 +45,12 @@ public class ClienteView {
         Cliente.Estado estado = InputReader.nextEnum("Estado", Cliente.Estado.class);
 
         Cliente c = new Cliente(id, nombre, apellido, cc, estado);
-        controller.crear(c);
-        System.out.println("✔ Cliente creado.");
+        try {
+            controller.crear(c);
+            System.out.println("✔ Cliente creado.");
+        } catch (RuntimeException ex) {
+            System.out.println("✗ No se pudo crear el cliente: " + ex.getMessage());
+        }
     }
 
     private void listar() {
@@ -103,16 +106,26 @@ public class ClienteView {
         c.setEsCuentaCorriente(cc);
         c.setEstado(estado);
 
-        controller.actualizar(c);
-        System.out.println("✔ Cliente actualizado.");
+        try {
+            controller.actualizar(c);
+            System.out.println("✔ Cliente actualizado.");
+        } catch (RuntimeException ex) {
+            // Aquí, si el trigger bloquea pasar a inactivo con facturas, verás el mensaje claro
+            System.out.println("✗ No se pudo actualizar: " + ex.getMessage());
+        }
     }
 
     private void eliminar() {
         System.out.println("\n> Eliminar cliente");
         int id = InputReader.nextInt("ID: ");
-        boolean ok = controller.eliminar(id);
-        if (ok) System.out.println("✔ Cliente eliminado.");
-        else System.out.println("No existe cliente con id=" + id);
+        try {
+            boolean ok = controller.eliminar(id);
+            if (ok) System.out.println("✔ Cliente eliminado.");
+            else System.out.println("No existe cliente con id=" + id);
+        } catch (RuntimeException ex) {
+            // FK u otras restricciones
+            System.out.println("✗ No se pudo eliminar: " + ex.getMessage());
+        }
     }
 
     // ======================= Helpers =======================

@@ -28,7 +28,7 @@ public class DetalleFacturaController {
     // ======= CRUD / Operaciones principales =======
 
     /** Crea un detalle para (idFactura, idProducto) con 'cantidad'. Triggers de BD calculan precio y subtotal. */
-    public DetalleFactura crear(Long idFactura, Long idProducto, int cantidad) {
+    public DetalleFactura crear(Integer idFactura, Integer idProducto, int cantidad) {
         if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser > 0");
 
         Transaction tx = null;
@@ -59,7 +59,11 @@ public class DetalleFacturaController {
             }
 
             DetalleFactura det = new DetalleFactura(factura, producto, cantidad);
-            session.persist(det); // triggers descuentan stock y calculan valores
+            session.persist(det);
+
+            // <-- IMPORTANTE: traer campos calculados por triggers (precio_unitario, subtotal)
+            session.flush();
+            session.refresh(det);
 
             tx.commit();
             return det;
@@ -74,21 +78,26 @@ public class DetalleFacturaController {
     }
 
     /** Obtiene un detalle por clave compuesta. */
-    public Optional<DetalleFactura> obtener(Long idFactura, Long idProducto) {
+    public Optional<DetalleFactura> obtener(Integer idFactura, Integer idProducto) {
         try (Session session = SESSION_FACTORY.openSession()) {
             DetalleFacturaId pk = new DetalleFacturaId(idFactura, idProducto);
-            return Optional.ofNullable(session.get(DetalleFactura.class, pk));
+            DetalleFactura d = session.get(DetalleFactura.class, pk);
+            return Optional.ofNullable(d);
         } catch (Exception e) {
             throw new RuntimeException(
                     "No se pudo obtener el detalle (factura=" + idFactura + ", producto=" + idProducto + "): " + e.getMessage(), e);
         }
     }
 
-    /** Lista todos los detalles de una factura. */
-    public List<DetalleFactura> listarPorFactura(Long idFactura) {
+    /** Lista todos los detalles de una factura (con producto y factura inicializados). */
+    public List<DetalleFactura> listarPorFactura(Integer idFactura) {
         try (Session session = SESSION_FACTORY.openSession()) {
             return session.createQuery(
-                            "from DetalleFactura d where d.factura.idFactura = :fid order by d.producto.idProducto",
+                            "select d from DetalleFactura d " +
+                                    "join fetch d.producto " +
+                                    "join fetch d.factura " +
+                                    "where d.factura.idFactura = :fid " +
+                                    "order by d.producto.idProducto",
                             DetalleFactura.class)
                     .setParameter("fid", idFactura)
                     .getResultList();
@@ -101,7 +110,7 @@ public class DetalleFacturaController {
      * Actualiza la cantidad del detalle. Implementado como DELETE + INSERT para
      * respetar el flujo de triggers del profe (recalcula stock, subtotal y total).
      */
-    public DetalleFactura actualizarCantidad(Long idFactura, Long idProducto, int nuevaCantidad) {
+    public DetalleFactura actualizarCantidad(Integer idFactura, Integer idProducto, int nuevaCantidad) {
         if (nuevaCantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser > 0");
 
         Transaction tx = null;
@@ -118,9 +127,14 @@ public class DetalleFacturaController {
             Factura factura = existente.getFactura();
             Producto producto = existente.getProducto();
 
-            session.remove(existente);                       // triggers devuelven stock y recalculan
+            session.remove(existente);   // triggers devuelven stock y recalculan total
+
             DetalleFactura nuevo = new DetalleFactura(factura, producto, nuevaCantidad);
-            session.persist(nuevo);                          // triggers descuentan y recalculan
+            session.persist(nuevo);
+
+            // refrescar para ver valores calculados por triggers
+            session.flush();
+            session.refresh(nuevo);
 
             tx.commit();
             return nuevo;
@@ -138,7 +152,7 @@ public class DetalleFacturaController {
      * Reemplaza el producto de un detalle por otro (DELETE del viejo + INSERT del nuevo).
      * Evita duplicar si ya existe un detalle con el producto nuevo.
      */
-    public DetalleFactura reemplazarProducto(Long idFactura, Long idProductoActual, Long idProductoNuevo, int cantidadNueva) {
+    public DetalleFactura reemplazarProducto(Integer idFactura, Integer idProductoActual, Integer idProductoNuevo, int cantidadNueva) {
         if (cantidadNueva <= 0) throw new IllegalArgumentException("La cantidad debe ser > 0");
 
         Transaction tx = null;
@@ -175,6 +189,10 @@ public class DetalleFacturaController {
             DetalleFactura nuevo = new DetalleFactura(factura, nuevoProd, cantidadNueva);
             session.persist(nuevo); // triggers descuentan y recalculan
 
+            // refrescar para ver valores calculados
+            session.flush();
+            session.refresh(nuevo);
+
             tx.commit();
             return nuevo;
         } catch (RuntimeException e) {
@@ -188,7 +206,7 @@ public class DetalleFacturaController {
     }
 
     /** Elimina un detalle (factura, producto). */
-    public boolean eliminar(Long idFactura, Long idProducto) {
+    public boolean eliminar(Integer idFactura, Integer idProducto) {
         Transaction tx = null;
         try (Session session = SESSION_FACTORY.openSession()) {
             tx = session.beginTransaction();

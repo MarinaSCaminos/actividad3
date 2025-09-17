@@ -1,7 +1,5 @@
 package ar.edu.unlu.bd2.view;
 
-
-import ar.edu.unlu.bd2.controller.DetalleFacturaController;
 import ar.edu.unlu.bd2.controller.FacturaController;
 import ar.edu.unlu.bd2.modelo.DetalleFactura;
 import ar.edu.unlu.bd2.modelo.Factura;
@@ -14,7 +12,6 @@ import java.util.Optional;
 public class FacturaView {
 
     private final FacturaController fCtrl = new FacturaController();
-    private final DetalleFacturaController dCtrl = new DetalleFacturaController();
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -78,7 +75,7 @@ public class FacturaView {
 
     private void verFactura() {
         System.out.println("\n> Ver factura");
-        long id = InputReader.nextLong("ID de factura: ");
+        int  id = InputReader.nextInt("ID de factura: ");
         Optional<Factura> of = fCtrl.obtenerPorId(id);
         if (of.isEmpty()) {
             System.out.println("No existe factura con id=" + id);
@@ -93,8 +90,8 @@ public class FacturaView {
 
     private void agregarDetalle() {
         System.out.println("\n> Agregar detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto: ");
         int cantidad = InputReader.nextInt("Cantidad (>0): ");
         DetalleFactura d = fCtrl.agregarDetalle(idFactura, idProducto, cantidad);
         System.out.println("✔ Detalle agregado: factura=" + idFactura + ", producto=" + idProducto +
@@ -103,8 +100,8 @@ public class FacturaView {
 
     private void actualizarCantidadDetalle() {
         System.out.println("\n> Actualizar cantidad de detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto (actual): ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto (actual): ");
         int nuevaCantidad = InputReader.nextInt("Nueva cantidad (>0): ");
         DetalleFactura d = fCtrl.actualizarCantidad(idFactura, idProducto, nuevaCantidad);
         System.out.println("✔ Cantidad actualizada. Nuevo subtotal: " + d.getSubtotal());
@@ -112,9 +109,9 @@ public class FacturaView {
 
     private void reemplazarProductoDetalle() {
         System.out.println("\n> Reemplazar producto en detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProductoActual = InputReader.nextLong("ID de producto actual: ");
-        long idProductoNuevo = InputReader.nextLong("ID de producto nuevo: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProductoActual = InputReader.nextInt("ID de producto actual: ");
+        int idProductoNuevo = InputReader.nextInt("ID de producto nuevo: ");
         int cantidadNueva = InputReader.nextInt("Cantidad para el nuevo producto (>0): ");
         DetalleFactura d = fCtrl.reemplazarProducto(idFactura, idProductoActual, idProductoNuevo, cantidadNueva);
         System.out.println("✔ Producto reemplazado. Nuevo prod=" + d.getProducto().getIdProducto()
@@ -123,8 +120,8 @@ public class FacturaView {
 
     private void eliminarDetalle() {
         System.out.println("\n> Eliminar detalle");
-        long idFactura = InputReader.nextLong("ID de factura: ");
-        long idProducto = InputReader.nextLong("ID de producto: ");
+        int idFactura = InputReader.nextInt("ID de factura: ");
+        int idProducto = InputReader.nextInt("ID de producto: ");
         boolean ok = fCtrl.eliminarDetalle(idFactura, idProducto);
         if (ok) System.out.println("✔ Detalle eliminado.");
         else System.out.println("No existe ese detalle en la factura.");
@@ -132,7 +129,7 @@ public class FacturaView {
 
     private void eliminarFactura() {
         System.out.println("\n> Eliminar factura");
-        long id = InputReader.nextLong("ID de factura: ");
+        int id = InputReader.nextInt("ID de factura: ");
         boolean ok = fCtrl.eliminar(id);
         if (ok) System.out.println("✔ Factura eliminada.");
         else System.out.println("No existe factura con id=" + id);

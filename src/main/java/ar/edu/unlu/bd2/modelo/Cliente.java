@@ -8,9 +8,7 @@ import java.util.*;
 @Table(name = "cliente")
 public class Cliente {
 
-    public enum Estado {
-        ACTIVO, INACTIVO
-    }
+    public enum Estado { activo, inactivo }
 
     @Id
     @Column(name = "id_cliente", nullable = false)
@@ -27,7 +25,7 @@ public class Cliente {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 16)
-    private Estado estado = Estado.ACTIVO;
+    private Estado estado = Estado.activo;
 
     // Relación 1..N con Factura (lado inverso; el dueño será Factura.cliente)
     @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY)

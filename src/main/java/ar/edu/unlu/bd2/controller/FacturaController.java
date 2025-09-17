@@ -1,6 +1,7 @@
 package ar.edu.unlu.bd2.controller;
 
 import ar.edu.unlu.bd2.modelo.*;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -50,9 +51,14 @@ public class FacturaController {
         }
     }
 
-    public Optional<Factura> obtenerPorId(Long idFactura) {
+    public Optional<Factura> obtenerPorId(Integer idFactura) {
         try (Session session = SESSION_FACTORY.openSession()) {
             Factura f = session.get(Factura.class, idFactura);
+            if (f != null) {
+                // Evita LazyInitializationException si la vista consulta detalles.size()
+                Hibernate.initialize(f.getCliente());
+                Hibernate.initialize(f.getDetalles());
+            }
             return Optional.ofNullable(f);
         } catch (Exception e) {
             throw new RuntimeException("No se pudo obtener la factura id=" + idFactura + ": " + e.getMessage(), e);
@@ -61,8 +67,9 @@ public class FacturaController {
 
     public List<Factura> listarTodas() {
         try (Session session = SESSION_FACTORY.openSession()) {
-            return session.createQuery("from Factura f order by f.idFactura", Factura.class)
-                    .getResultList();
+            // join fetch para no fallar al acceder f.getCliente() en la vista
+            return session.createQuery("select f from Factura f join fetch f.cliente order by f.idFactura",
+                    Factura.class).getResultList();
         } catch (Exception e) {
             throw new RuntimeException("No se pudieron listar facturas: " + e.getMessage(), e);
         }
@@ -71,17 +78,17 @@ public class FacturaController {
     public List<Factura> listarPorCliente(Integer idCliente) {
         try (Session session = SESSION_FACTORY.openSession()) {
             return session.createQuery(
-                            "from Factura f where f.cliente.idCliente = :cid order by f.idFactura",
-                            Factura.class)
-                    .setParameter("cid", idCliente)
-                    .getResultList();
+                    "select f from Factura f join fetch f.cliente " +
+                            "where f.cliente.idCliente = :cid order by f.idFactura",
+                    Factura.class
+            ).setParameter("cid", idCliente).getResultList();
         } catch (Exception e) {
             throw new RuntimeException("No se pudieron listar facturas del cliente " + idCliente + ": " + e.getMessage(), e);
         }
     }
 
     /** Elimina una factura (si hay detalles, dependerá de FK/orphanRemoval). */
-    public boolean eliminar(Long idFactura) {
+    public boolean eliminar(Integer idFactura) {
         Transaction tx = null;
         try (Session session = SESSION_FACTORY.openSession()) {
             tx = session.beginTransaction();
@@ -102,7 +109,7 @@ public class FacturaController {
     // ======= Operaciones con Detalles =======
 
     /** Agrega un detalle (producto+cantidad) a una factura existente. */
-    public DetalleFactura agregarDetalle(Long idFactura, Long idProducto, int cantidad) {
+    public DetalleFactura agregarDetalle(Integer idFactura, Integer idProducto, int cantidad) {
         if (cantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser > 0");
 
         Transaction tx = null;
@@ -125,16 +132,15 @@ public class FacturaController {
                 throw new IllegalStateException("Producto inactivo id=" + idProducto);
             }
 
-            // Si ya existe el mismo (id_factura, id_producto) evitamos duplicar
+            // Evitar duplicado (id_factura, id_producto)
             DetalleFacturaId pk = new DetalleFacturaId(idFactura, idProducto);
-            DetalleFactura existente = session.get(DetalleFactura.class, pk);
-            if (existente != null) {
+            if (session.get(DetalleFactura.class, pk) != null) {
                 tx.rollback();
                 throw new IllegalStateException("La factura ya tiene un detalle para el producto " + idProducto);
             }
 
             DetalleFactura det = new DetalleFactura(factura, producto, cantidad);
-            session.persist(det); // triggers de BD calcularán precio_unitario, subtotal y actualizarán stock
+            session.persist(det); // triggers calcularán subtotal/total y ajustarán stock
 
             tx.commit();
             return det;
@@ -147,13 +153,12 @@ public class FacturaController {
                     "No se pudo agregar detalle a factura=" + idFactura + " producto=" + idProducto + ": " + e.getMessage(), e);
         }
     }
-
     /**
      * Actualiza la cantidad de un detalle.
      * Para imitar el enfoque del profe (SP que hace DELETE + INSERT para recalcular triggers),
      * implementamos como "reemplazo": borramos y volvemos a insertar con la nueva cantidad.
      */
-    public DetalleFactura actualizarCantidad(Long idFactura, Long idProducto, int nuevaCantidad) {
+    public DetalleFactura actualizarCantidad(Integer idFactura, Integer idProducto, int nuevaCantidad) {
         if (nuevaCantidad <= 0) throw new IllegalArgumentException("La cantidad debe ser > 0");
 
         Transaction tx = null;
@@ -192,7 +197,7 @@ public class FacturaController {
      * Reemplaza el producto del detalle (DELETE del detalle anterior + INSERT del nuevo).
      * Equivalente conceptual al SP del profe.
      */
-    public DetalleFactura reemplazarProducto(Long idFactura, Long idProductoActual, Long idProductoNuevo, int cantidadNueva) {
+    public DetalleFactura reemplazarProducto(Integer idFactura, Integer idProductoActual, Integer idProductoNuevo, int cantidadNueva) {
         if (cantidadNueva <= 0) throw new IllegalArgumentException("La cantidad debe ser > 0");
 
         Transaction tx = null;
@@ -241,7 +246,7 @@ public class FacturaController {
     }
 
     /** Elimina un detalle (factura, producto). */
-    public boolean eliminarDetalle(Long idFactura, Long idProducto) {
+    public boolean eliminarDetalle(Integer idFactura, Integer idProducto) {
         Transaction tx = null;
         try (Session session = SESSION_FACTORY.openSession()) {
             tx = session.beginTransaction();
@@ -263,13 +268,16 @@ public class FacturaController {
     }
 
     /** Lista los detalles de una factura. */
-    public List<DetalleFactura> listarDetalles(Long idFactura) {
+    public List<DetalleFactura> listarDetalles(Integer idFactura) {
         try (Session session = SESSION_FACTORY.openSession()) {
             return session.createQuery(
-                            "from DetalleFactura d where d.factura.idFactura = :fid order by d.producto.idProducto",
-                            DetalleFactura.class)
-                    .setParameter("fid", idFactura)
-                    .getResultList();
+                    "select d from DetalleFactura d " +
+                            "join fetch d.producto " +
+                            "join fetch d.factura " +
+                            "where d.factura.idFactura = :fid " +
+                            "order by d.producto.idProducto",
+                    DetalleFactura.class
+            ).setParameter("fid", idFactura).getResultList();
         } catch (Exception e) {
             throw new RuntimeException("No se pudieron listar los detalles de la factura " + idFactura + ": " + e.getMessage(), e);
         }

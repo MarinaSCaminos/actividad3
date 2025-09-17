@@ -1,49 +1,37 @@
 package ar.edu.unlu.bd2;
 
+import ar.edu.unlu.bd2.view.ClienteView;
+import ar.edu.unlu.bd2.view.ProductoView;
+import ar.edu.unlu.bd2.view.FacturaView;
+import ar.edu.unlu.bd2.view.DetalleFacturaView;
+import ar.edu.unlu.bd2.view.InputReader;
 
-import ar.edu.unlu.bd2.view.*;
-
-/**
- * Menú principal de la app CLI.
- * Orquesta los submenús de Clientes, Productos, Facturas y Detalles.
- */
 public class App {
-
     public static void main(String[] args) {
-        new App().run();
-    }
+        // Views sin inyección (cada view crea su controller interno)
+        ClienteView clienteView = new ClienteView();
+        ProductoView productoView = new ProductoView();
+        FacturaView facturaView = new FacturaView();
+        DetalleFacturaView detalleView = new DetalleFacturaView();
 
-    private void run() {
-        while (true) {
-            System.out.println("\n===============================");
-            System.out.println("  ORM Prueba - Hibernate (CLI) ");
-            System.out.println("===============================");
+        String op;
+        do {
+            System.out.println("\n===== MENÚ PRINCIPAL =====");
             System.out.println("1) Clientes");
             System.out.println("2) Productos");
             System.out.println("3) Facturas");
             System.out.println("4) Detalles de Factura");
             System.out.println("0) Salir");
+            op = InputReader.nextLine("> ");
 
-            int opt = InputReader.nextInt("Opción: ");
-
-            try {
-                switch (opt) {
-                    case 1 -> new ClienteView().menu();
-                    case 2 -> new ProductoView().menu();
-                    case 3 -> new FacturaView().menu();
-                    case 4 -> new DetalleFacturaView().menu();
-                    case 0 -> {
-                        System.out.println("¡Hasta luego!");
-                        return;
-                    }
-                    default -> System.out.println("Opción inválida.");
-                }
-            } catch (RuntimeException e) {
-                // Muestra errores de negocio/BD sin romper la app
-                System.err.println("Error: " + e.getMessage());
+            switch (op) {
+                case "1" -> clienteView.menu();
+                case "2" -> productoView.menu();
+                case "3" -> facturaView.menu();
+                case "4" -> detalleView.menu();
+                case "0" -> System.out.println("Saliendo...");
+                default  -> System.out.println("Opción inválida");
             }
-
-            InputReader.pressEnterToContinue();
-        }
+        } while (!"0".equals(op));
     }
 }

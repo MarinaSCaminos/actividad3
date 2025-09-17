@@ -13,9 +13,9 @@ import java.util.Set;
 public class Producto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO_INCREMENT en MySQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // id_producto INT AUTO_INCREMENT
     @Column(name = "id_producto", nullable = false)
-    private Long idProducto;
+    private Integer idProducto;
 
     @Column(name = "nombre", nullable = false, length = 120)
     private String nombre;
@@ -29,7 +29,7 @@ public class Producto {
     @Column(name = "activo", nullable = false)
     private Boolean activo = Boolean.TRUE;
 
-    // Relación 1..N con DetalleFactura (lado inverso; el dueño será DetalleFactura.producto)
+    // Relación 1..N con DetalleFactura (lado inverso; el dueño es DetalleFactura.producto)
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
     private Set<DetalleFactura> detalles = new LinkedHashSet<>();
 
@@ -44,8 +44,8 @@ public class Producto {
 
     // =================== Getters / Setters ===================
 
-    public Long getIdProducto() { return idProducto; }
-    public void setIdProducto(Long idProducto) { this.idProducto = idProducto; }
+    public Integer getIdProducto() { return idProducto; }
+    public void setIdProducto(Integer idProducto) { this.idProducto = idProducto; }
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
@@ -81,8 +81,7 @@ public class Producto {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Producto)) return false;
-        Producto other = (Producto) o;
+        if (!(o instanceof Producto other)) return false;
         return idProducto != null && idProducto.equals(other.idProducto);
     }
 

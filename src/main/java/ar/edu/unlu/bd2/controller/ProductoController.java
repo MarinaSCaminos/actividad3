@@ -73,7 +73,7 @@ public class ProductoController {
         Transaction tx = null;
         try (Session session = SESSION_FACTORY.openSession()) {
             tx = session.beginTransaction();
-            Producto managed = (Producto) session.merge(producto);
+            Producto managed = session.merge(producto);
             tx.commit();
             return managed;
         } catch (Exception e) {
@@ -155,8 +155,7 @@ public class ProductoController {
             tx = session.beginTransaction();
 
             // Bloqueo pesimista para evitar carreras al ajustar stock manualmente
-            Producto p = session.get(Producto.class, idProducto,
-                    new LockOptions(LockMode.PESSIMISTIC_WRITE));
+            Producto p = session.get(Producto.class, idProducto, new LockOptions(LockMode.PESSIMISTIC_WRITE));
             if (p == null) {
                 tx.rollback();
                 throw new IllegalArgumentException("Producto inexistente id=" + idProducto);
