@@ -107,4 +107,10 @@ public class ClienteController {
     public boolean existe(Integer idCliente) {
         return obtenerPorId(idCliente).isPresent();
     }
+
+    public static void shutdown() {
+        try {
+            if (SESSION_FACTORY != null) SESSION_FACTORY.close();
+        } catch (Exception ignore) {}
+    }
 }

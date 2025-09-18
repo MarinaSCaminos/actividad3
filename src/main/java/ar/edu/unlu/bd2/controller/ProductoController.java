@@ -1,11 +1,7 @@
 package ar.edu.unlu.bd2.controller;
 
 import ar.edu.unlu.bd2.modelo.Producto;
-import org.hibernate.LockMode;
-import org.hibernate.LockOptions;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 import org.hibernate.cfg.Configuration;
 
 import java.math.BigDecimal;
@@ -43,6 +39,9 @@ public class ProductoController {
     public Optional<Producto> obtenerPorId(Long idProducto) {
         try (Session session = SESSION_FACTORY.openSession()) {
             Producto p = session.get(Producto.class, idProducto);
+            if (p != null) {
+                Hibernate.initialize(p.getDetalles());
+            }
             return Optional.ofNullable(p);
         } catch (Exception e) {
             throw new RuntimeException("No se pudo obtener el producto id=" + idProducto + ": " + e.getMessage(), e);
@@ -177,5 +176,11 @@ public class ProductoController {
             if (tx != null) tx.rollback();
             throw new RuntimeException("No se pudo ajustar el stock del producto id=" + idProducto + ": " + e.getMessage(), e);
         }
+    }
+    /** Cerrar el SessionFactory para que no queden hilos vivos al salir. */
+    public static void shutdown() {
+        try {
+            if (SESSION_FACTORY != null) SESSION_FACTORY.close();
+        } catch (Exception ignore) {}
     }
 }

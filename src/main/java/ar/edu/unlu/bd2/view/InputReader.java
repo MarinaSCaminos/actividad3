@@ -19,11 +19,15 @@ public final class InputReader {
 
     private InputReader() {}
 
+    private static void prompt(String p) {
+        System.out.print(p);
+        System.out.flush(); // <- evita que el prompt quede “atrás” del input
+    }
     // ===================== Lecturas base =====================
 
     public static String nextLine(String prompt) {
         while (true) {
-            System.out.print(prompt);
+            prompt(prompt);
             try {
                 String s = IN.readLine();
                 if (s != null) return s;

@@ -282,4 +282,10 @@ public class FacturaController {
             throw new RuntimeException("No se pudieron listar los detalles de la factura " + idFactura + ": " + e.getMessage(), e);
         }
     }
+
+    public static void shutdown() {
+        try {
+            if (SESSION_FACTORY != null) SESSION_FACTORY.close();
+        } catch (Exception ignore) {}
+    }
 }
